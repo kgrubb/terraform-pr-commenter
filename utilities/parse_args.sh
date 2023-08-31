@@ -6,11 +6,11 @@ parse_args () {
   COMMAND=$1
   debug "COMMAND: $COMMAND"
 
-  # Arg 3 is the Terraform CLI exit code
+  # Arg 2 is the Terraform CLI exit code
   EXIT_CODE=$2
   debug "EXIT_CODE: $EXIT_CODE"
 
-  # Arg 2 is input file. We strip ANSI colours.
+  # COMMENTER_INPUT is input file. We strip ANSI colours.
   RAW_INPUT="$COMMENTER_INPUT"
   debug "COMMENTER_INPUT: $COMMENTER_INPUT"
 
@@ -45,6 +45,10 @@ parse_args () {
   # Read TF_WORKSPACE environment variable or use "default"
   # shellcheck disable=SC2034
   WORKSPACE=${TF_WORKSPACE:-default}
+
+  # Read TF_WORKSPACE environment variable or use ""
+  # shellcheck disable=SC2034
+  PROJECT=${TF_PROJECT:-''}
 
   # Read EXPAND_SUMMARY_DETAILS environment variable or use "true"
   if [[ ${EXPAND_SUMMARY_DETAILS:-false} == "true" ]]; then

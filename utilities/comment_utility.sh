@@ -15,6 +15,10 @@ make_and_post_payload () {
 
 make_details_with_header() {
   local header="### $1"
+  if [[ ! -z $PROJECT ]]; then
+    header="## Project: $PROJECT
+$header"
+  fi
   local body=$2
   local format=$3
   local pr_comment="$header
@@ -36,7 +40,9 @@ $body
 }
 
 post_comment () {
-  curl -sS -L -X POST -H "$ACCEPT_HEADER" -H "$AUTH_HEADER" -H "$CONTENT_HEADER" "$PR_COMMENTS_URL" -d "$pr_payload"
+  local comment=$(curl -sS -L -X POST -H "$ACCEPT_HEADER" -H "$AUTH_HEADER" -H "$CONTENT_HEADER" "$PR_COMMENTS_URL" -d "$pr_payload")
+  echo "comment_id=$(echo $comment | jq -r '.id')" >>/github-ouput
+  echo "comment_url=$(echo $comment | jq -r '.html_url')" >>/github-ouput
 }
 
 ### DIFF AND STRING SUBSTITUTION UTILITIES ###
@@ -90,8 +96,7 @@ delimiter_end_cmd_builder () {
   printf "/%s/q" "$1"
 }
 
-print_start_delimiter_string ()
-{
+print_start_delimiter_string () {
   # run through array and print each entry:
   local array
   array=("$@")
@@ -109,6 +114,10 @@ delete_existing_comments () {
   local regex=$2
   local last_page
 
+  if [[ ! -z $PROJECT ]]; then
+    regex="## Project: $PROJECT\\n$regex"
+  fi
+
   debug "Type: $type"
   debug "Regex: $regex"
 
@@ -123,16 +132,14 @@ delete_existing_comments () {
 
   info "Looking for an existing $type PR comment."
   local comment_ids=()
-  for page in $(seq $last_page)
-  do
+  for page in $(seq $last_page); do
     # first, we read *all* of the comment IDs across all pages.  saves us from the problem where we read a page, then
     # delete some, then read the next page, *after* our page boundary has moved due to the delete.
       # CAUTION.  this line assumes the PR_COMMENTS_URL already has at least one query parameter. (note the '&')
     readarray -t -O "${#comment_ids[@]}" comment_ids < <(curl -sS -H "$AUTH_HEADER" -H "$ACCEPT_HEADER" -L "$PR_COMMENTS_URL&page=$page" | jq "$jq")
   done
 
-  for PR_COMMENT_ID in "${comment_ids[@]}"
-  do
+  for PR_COMMENT_ID in "${comment_ids[@]}"; do
     FOUND=true
     info "Found existing $type PR comment: $PR_COMMENT_ID. Deleting."
     PR_COMMENT_URL="$PR_COMMENT_URI/$PR_COMMENT_ID"
