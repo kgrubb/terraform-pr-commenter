@@ -17,7 +17,7 @@ make_and_post_payload () {
 
 make_details_with_header() {
   local header="### $1"
-  if [[ ! -z $PROJECT ]]; then
+  if [[ -n $PROJECT ]]; then
     header="## Project: $PROJECT
 $header"
   fi
