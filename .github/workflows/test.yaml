@@ -9,7 +9,7 @@ permissions:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  TERRAFORM_VERSION: "1.4.6"
+  TERRAFORM_VERSION: "1.5.6"
   TF_WORKSPACE: "testing"
   COMMENTER_DEBUG: "true"
   GH_ACCEPT_HEADER: "Accept: application/vnd.github+json"
@@ -32,7 +32,6 @@ jobs:
       tf_plan_success_with_outputs: ${{ steps.file_outputs.outputs.tf_plan_success_with_outputs }}
       tf_plan_success_long: ${{ steps.file_outputs.outputs.tf_plan_success_long }}
       tf_validate_fail: ${{ steps.file_outputs.outputs.tf_validate_fail }}
-      tflint_fail: ${{ steps.file_outputs.outputs.tflint_fail }}
     strategy:
       matrix:
         filenames:
@@ -45,7 +44,6 @@ jobs:
           - "tf_plan_success_with_outputs"
           - "tf_plan_success_long"
           - "tf_validate_fail"
-          - "tflint_fail"
     steps:
       - uses: actions/checkout@v3
         if: ${{ env.TESTING == 'true' }}

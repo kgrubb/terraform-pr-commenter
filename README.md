@@ -1,120 +1,131 @@
 # Terraform PR Commenter
 
-> This project was forked from <https://github.com/robburger/terraform-pr-commenter> project, originally created by [
-Rob Burger](https://github.com/robburger).
+> This project was forked from <https://github.com/kgrubb/terraform-pr-commenter>.
 
 ## Summary
 
-This Docker-based GitHub Action is designed to work in tandem with [hashicorp/setup-terraform](https://github.com/hashicorp/setup-terraform) and [terraform-linters/setup-tflint](https://github.com/terraform-linters/setup-tflint) with the **wrapper enabled**, taking the output from a `fmt`, `init`, `plan`, `validate` or `tflint`, formatting it and adding it to a pull request. Any previous comments from this Action are removed to keep the PR timeline clean.
+This Docker-based GitHub Action is designed to work in tandem with [hashicorp/setup-terraform](https://github.com/hashicorp/setup-terraform) with the **wrapper enabled**, taking the output from a `fmt`, `init`, `plan`, or `validate`, formatting it and adding it to a pull request. Any previous comments from this Action are removed to keep the PR timeline clean.
 
 > The `terraform_wrapper` needs to be set to `true` for the `hashicorp/setup-terraform` step if using `stdout`, `stderr` and the `exitcode` step outputs like the below examples.
-
-> The `tflint_wrapper` needs to be set to `true` for the `terraform-linters/setup-tflint` step if using `stdout`, `stderr` and the `exitcode` step outputs like the below examples.
 
 Support (for now) is [limited to Linux](https://help.github.com/en/actions/creating-actions/about-actions#types-of-actions) as Docker-based GitHub Actions can only be used on Linux runners.
 
 ## Usage
 
-This action can only be run after a Terraform `fmt`, `init`, `plan`, `validate` or `tflint` has completed, and the output has been captured. Terraform rarely writes to `stdout` and `stderr` in the same action, so the `commenter_input` needs to be concatenated. For the `plan` commenter type we recommend saving the output to a file instead of using stdout/stderr as this allows us to bypass size limits for variables so large terraform plans don't need to be truncated.
+This action can only be run after a Terraform `fmt`, `init`, `plan`, or `validate` has completed, and the output has been captured. Terraform rarely writes to `stdout` and `stderr` in the same action, so the `commenter_input` needs to be concatenated. For the `plan` commenter type we recommend saving the output to a file instead of using stdout/stderr as this allows us to bypass size limits for variables so large terraform plans don't need to be truncated.
 
 Example Workflow:
 
 ```yaml
-name: Terraform
+name: 'Terraform'
 
 on:
   pull_request:
-
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  TF_WORKSPACE: "example"
-  TF_VERSION: "1.5.6"
+  push:
+    branches:
+      - main
 
 jobs:
   terraform:
-    name: Run Terraform and Comment
+    name: 'Terraform'
     runs-on: ubuntu-latest
-  steps:
-    - name: HashiCorp - Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-    - name: Terraform Format
-      id: fmt
-      run: |
-        terraform fmt -check -recursive -diff
-      continue-on-error: true
-    - name: Post Format Comment
-      if: ${{ always() && (steps.fmt.outcome == 'success' || steps.fmt.outcome == 'failure') }}
-      uses: GetTerminus/terraform-pr-commenter@v3
-      with:
-        commenter_type: fmt
-        commenter_input: ${{ format('{0}{1}', steps.fmt.outputs.stdout, steps.fmt.outputs.stderr) }}
-        commenter_exitcode: ${{ steps.fmt.outputs.exitcode }}
-    - name: Terraform Init
-      id: init
-      run: terraform init -lock=false -input=false
-    - name: Post Init Comment
-      if: ${{ always() && (steps.init.outcome == 'success' || steps.init.outcome == 'failure') }}
-      uses: GetTerminus/terraform-pr-commenter@v3
-      with:
-        commenter_type: init
-        commenter_input: ${{ format('{0}{1}', steps.init.outputs.stdout, steps.init.outputs.stderr) }}
-        commenter_exitcode: ${{ steps.init.outputs.exitcode }}
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate
-    - name: Post TF Validate Comment
-      if: ${{ always() && (steps.validate.outcome == 'success' || steps.validate.outcome == 'failure') }}
-      uses: GetTerminus/terraform-pr-commenter@v3
-      with:
-        commenter_type: validate
-        commenter_input: ${{ format('{0}{1}', steps.validate.outputs.stdout, steps.validate.outputs.stderr) }}
-        commenter_exitcode: ${{ steps.validate.outputs.exitcode }}
-    - name: TFLint - Setup
-      id: tflint
-      uses: terraform-linters/setup-tflint@v3
-      with:
-        tflint_wrapper_enabled: true
-    - name: TFLint - Run
-      run: |
-        tflint --version
-        tflint --init
-        tflint
-    - name: Post TFLint Comment
-      if: ${{ always() && (steps.tflint.outcome == 'success' || steps.tflint.outcome == 'failure') }}
-      uses: GetTerminus/terraform-pr-commenter@dpr-update-commenter
-      with:
-        commenter_type: tflint
-        commenter_input: ${{ format('{0}{1}', steps.tflint.outputs.stdout, steps.tflint.outputs.stderr) }}
-        commenter_exitcode: ${{ steps.tflint.outputs.exitcode }}
-    - name: Terraform Plan
-      id: plan
-      run: terraform plan -lock=false -input=false |& tee tf_plan.txt
-    - uses: GetTerminus/terraform-pr-commenter@v3
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        TF_WORKSPACE: ${{ inputs.terraform_workspace }}
-      with:
-        commenter_type: plan
-        commenter_plan_path: tf_plan.txt
-        commenter_exitcode: ${{ steps.plan.outputs.exit }}
+    strategy:
+      matrix:
+        project_path:
+          - "."
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TF_VERSION: "1.5.6"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Terraform Apply
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.6
+
+      - name: "Terraform Format"
+        id: fmt
+        run: |
+          cd ${{ matrix.project_path }}
+          terraform fmt -check -recursive -diff
+        continue-on-error: true
+
+      - name: "Post Format"
+        if: always() && github.ref != 'refs/heads/main' && (steps.fmt.outcome == 'success' || steps.fmt.outcome == 'failure')
+        uses: kgrubb/terraform-pr-commenter@v3
+        env:
+          PROJECT: ${{ matrix.project_path) }}
+        with:
+          commenter_type: fmt
+          commenter_input: ${{ format('{0}{1}', steps.fmt.outputs.stdout, steps.fmt.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.fmt.outputs.exitcode }}
+
+      - name: "Terraform Init for ${{ matrix.project_path }}"
+        id: init
+        run: |
+          cd ${{ matrix.project_path }}
+          terraform init -lock=false -input=false
+
+      - name: "Post Init for ${{ matrix.project_path }}"
+        if: always() && github.ref != 'refs/heads/main' && (steps.init.outcome == 'success' || steps.init.outcome == 'failure')
+        uses: kgrubb/terraform-pr-commenter@v3
+        env:
+          PROJECT: ${{ matrix.project_path) }}
+        with:
+          commenter_type: init
+          commenter_input: ${{ format('{0}{1}', steps.init.outputs.stdout, steps.init.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.init.outputs.exitcode }}
+
+      - name: "Terraform Validate for ${{ matrix.project_path }}"
+        id: validate
+        run: |
+          cd ${{ matrix.project_path }}
+          terraform validate
+
+      - name: "Post Validate for ${{ matrix.project_path }}"
+        if: always() && github.ref != 'refs/heads/main' && (steps.validate.outcome == 'success' || steps.validate.outcome == 'failure')
+        uses: kgrubb/terraform-pr-commenter@v3
+        env:
+          PROJECT: ${{ matrix.project_path) }}
+        with:
+          commenter_type: validate
+          commenter_input: ${{ format('{0}{1}', steps.validate.outputs.stdout, steps.validate.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.validate.outputs.exitcode }}
+
+      - name: "Terraform Plan for ${{ matrix.project_path }}"
+        id: plan
+        run: |
+          cd ${{ matrix.project_path) }}
+          terraform plan -out workspace.plan
+
+      - name: "Post Plan for ${{ matrix.project_path }}"
+        if: always() && github.ref != 'refs/heads/main' && (steps.plan.outcome == 'success' || steps.plan.outcome == 'failure')
+        uses: kgrubb/terraform-pr-commenter@v3
+        env:
+          PROJECT: ${{ matrix.project_path) }}
+        with:
+          commenter_type: plan
+          commenter_input: ${{ format('{0}{1}', steps.plan.outputs.stdout, steps.plan.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.plan.outputs.exitcode }}
+
+      - name: Terraform Apply
         id: apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply workspace.plan
+
 ```
 
 ### Inputs
 
 | Name                  | Requirement    | Description                                                                                                                                                         |
 |-----------------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `commenter_type`      | ___required___ | The type of comment. Options: [`fmt`, `init`, `plan`, `validate`, `tflint`]                                                                                         |
+| `commenter_type`      | ___required___ | The type of comment. Options: [`fmt`, `init`, `plan`, `validate`]                                                                                         |
 | `commenter_input`     | ___optional___ | The comment to post from a previous step output. For plan commenter type either `commenter_input` or `commenter_plan_path` must be set. _This is limited to 128KiB_ |
 | `commenter_plan_path` | ___optional___ | The plan file path including the filename. Only available for plan commenter types.                                                                                 |
 | `commenter_exitcode`  | ___required___ | The exit code from a previous step output.                                                                                                                          |
-| `terraform_version`   | ___optional___ | The version of terraform from the workflow. Defaults to `1.4.6`.                                                                                                    |
+| `terraform_version`   | ___optional___ | The version of terraform from the workflow. Defaults to `1.5.6`.                                                                                                    |
 | `use_beta_version`    | ___optional___ | Whether or not to use the beta version of the commenter.                                                                                                            |
 | `project`             | ___optional___ | Project name to use in comments header. usefull for monorepos |
 
@@ -191,13 +202,9 @@ Example TF Plan Truncate:
 
 ![fmt](images/validate-output.png)
 
-### `tflint`
-
-![fmt](images/tflint-output.png)
-
 ## Troubleshooting & Contributing
 
-Feel free to head over to the [Issues](https://github.com/GetTerminus/terraform-pr-commenter//issues) tab to see if the issue you're having has already been reported. If not, [open a new one](https://github.com/GetTerminus/terraform-pr-commenter/issues/new) and be sure to include as much relevant information as possible, including code-samples, and a description of what you expect to be happening.
+Feel free to head over to the [Issues](https://github.com/kgrubb/terraform-pr-commenter//issues) tab to see if the issue you're having has already been reported. If not, [open a new one](https://github.com/kgrubb/terraform-pr-commenter/issues/new) and be sure to include as much relevant information as possible, including code-samples, and a description of what you expect to be happening.
 
 ## License
 

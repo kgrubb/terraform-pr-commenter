@@ -3,7 +3,8 @@
 make_and_post_payload () {
   # Add plan comment to PR.
   local kind=$1
-  local pr_payload=$(echo '{}' | jq --arg body "$2" '.body = $body')
+  local pr_payload
+  pr_payload=$(echo '{}' | jq --arg body "$2" '.body = $body')
 
   info "Adding $kind comment to PR."
 
@@ -22,7 +23,8 @@ $header"
   fi
   local body=$2
   local format=$3
-  local pr_comment="$header
+  local pr_comment
+  pr_comment="$header
 $(make_details "Show Output" "$body" "$format")"
   echo "$pr_comment"
 }
@@ -41,9 +43,10 @@ $body
 }
 
 post_comment () {
-  local comment=$(curl -sS -L -X POST -H "$ACCEPT_HEADER" -H "$AUTH_HEADER" -H "$CONTENT_HEADER" "$PR_COMMENTS_URL" -d "$pr_payload")
-  echo "comment_id=$(echo $comment | jq -r '.id')" >>/github-ouput
-  echo "comment_url=$(echo $comment | jq -r '.html_url')" >>/github-ouput
+  local comment
+  comment=$(curl -sS -L -X POST -H "$ACCEPT_HEADER" -H "$AUTH_HEADER" -H "$CONTENT_HEADER" "$PR_COMMENTS_URL" -d "$pr_payload")
+  echo "comment_id=$(echo "$comment" | jq -r '.id')" >>/github-ouput
+  echo "comment_url=$(echo "$comment" | jq -r '.html_url')" >>/github-ouput
 }
 
 ### DIFF AND STRING SUBSTITUTION UTILITIES ###
@@ -62,13 +65,15 @@ post_diff_comments () {
 
   for i in "${!comment_split[@]}"; do
     local current="${comment_split[$i]}"
-    local colorized_comment=$(substitute_and_colorize "$current")
+    local colorized_comment
+    colorized_comment=$(substitute_and_colorize "$current")
     local comment_count_text=""
     if [ "$comment_count" -ne 1 ]; then
       comment_count_text=" ($((i+1))/$comment_count)"
     fi
 
-    local comment=$(make_details_with_header "$comment_prefix$comment_count_text" "$colorized_comment" "diff")
+    local comment
+    comment=$(make_details_with_header "$comment_prefix$comment_count_text" "$colorized_comment" "diff")
     make_and_post_payload "$type" "$comment"
   done
 }

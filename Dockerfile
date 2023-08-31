@@ -2,7 +2,7 @@ ARG TERRAFORM_VERSION=1.5.6
 FROM hashicorp/terraform:${TERRAFORM_VERSION}
 
 LABEL com.github.actions.name="Terraform PR Commenter" \
-      com.github.actions.description="Adds comments to a PR from Terraform fmt/init/plan/tflint output." \
+      com.github.actions.description="Adds comments to a PR from Terraform fmt/init/plan output." \
       com.github.actions.icon="git-pull-request" \
       com.github.actions.color="blue"
 

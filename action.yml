@@ -1,12 +1,12 @@
-name: 'Terraform and TFLint PR Commenter'
-description: 'Adds opinionated comments to a PR from Terraform fmt/init/plan/validate/tflint output'
-author: 'GetTerminus'
+name: 'Terraform PR Commenter'
+description: 'Adds opinionated comments to a PR from Terraform fmt/init/plan/validate output'
+author: 'kgrubb'
 branding:
   icon: 'git-pull-request'
   color: 'blue'
 inputs:
   commenter_type:
-    description: 'The type of comment. Options: [fmt, init, plan, validate, tflint]'
+    description: 'The type of comment. Options: [fmt, init, plan, validate]'
     required: true
   commenter_input:
     description: 'The comment to post from a previous step output. This must be trimmed to at least 128 KiB. Required for non plan commenter types.'
@@ -15,18 +15,18 @@ inputs:
     description: 'The tfplan file. Required if commenter input is not set for plan commenter types.'
     required: false
   commenter_exitcode:
-    description: 'The exit code from a previous step output'
+    description: 'The exit code from a previous step output.'
     required: true
   terraform_version:
     description: 'The version of terraform from the workflow.'
     required: false
-    default: '1.4.6'
+    default: '1.5.6'
   use_beta_version:
-    description: 'Whether to use the beta version of the commenter'
+    description: 'Whether to use the beta version of the commenter.'
     required: false
     default: 'false'
   project:
-    description: project name to use in the comment
+    description: 'The project name to use in the comment.'
     required: false
 outputs:
   comment_id:
@@ -39,24 +39,15 @@ runs:
   using: "composite"
   steps:
     - name: Set Terraform Version if inputs.terraform_version is Empty # Until https://github.com/actions/runner/issues/924 is fixed
-      id: tf_version
+      id: terraform_version
+      shell: bash
       run: |
         if [[ -z ${{ inputs.terraform_version }} ]]; then
-          echo "version=1.4.6" >> $GITHUB_OUTPUT
+          echo "version=1.5.6" >> $GITHUB_OUTPUT
         else
           echo "version=${{ inputs.terraform_version }}" >> $GITHUB_OUTPUT
         fi
-      shell: bash
-    - name: Build commenter docker image (master)
-      if: ${{ inputs.use_beta_version != 'true' }}
-      run: docker build --build-arg TERRAFORM_VERSION=${{ steps.tf_version.outputs.version }} -t commenter https://github.com/GetTerminus/terraform-pr-commenter.git#v3
-      shell: bash
-    - name: Build commenter docker image (beta)
-      if: ${{ inputs.use_beta_version == 'true' }}
-      # append branch with a pound (#) if developing.  e.g., `commenter.git#my-branch`
-      run: |
-        docker build --build-arg TERRAFORM_VERSION=${{ steps.tf_version.outputs.version }} -t commenter https://github.com/GetTerminus/terraform-pr-commenter.git#v3-beta
-      shell: bash
+
     - name: Run commenter image (plan)
       id: commenter-plan
       if: ${{ inputs.commenter_type == 'plan' }}
@@ -65,6 +56,7 @@ runs:
         COMMENTER_PLAN_FILE: ${{ inputs.commenter_plan_path }}
         GITHUB_EVENT: ${{ toJSON(github.event) }}
         TF_PROJECT: ${{ inputs.project }}
+      shell: bash
       run: |
         docker run \
         -e GITHUB_TOKEN \
@@ -80,8 +72,8 @@ runs:
         -e COMMENTER_POST_PLAN_OUTPUTS \
         -v "$(pwd)"/:/workspace \
         -v "$GITHUB_OUTPUT":/github-ouput \
-        commenter ${{ inputs.commenter_type }} ${{ inputs.commenter_exitcode }}
-      shell: bash
+        kgrubb/terraform-pr-commenter ${{ inputs.commenter_type }} ${{ inputs.commenter_exitcode }}
+
     - name: Run commenter image (non-plan)
       id: commenter
       if: ${{ inputs.commenter_type != 'plan' }}
@@ -101,5 +93,5 @@ runs:
         -e COMMENTER_DEBUG \
         -e COMMENTER_ECHO \
         -v "$GITHUB_OUTPUT":/github-ouput \
-        commenter ${{ inputs.commenter_type }} ${{ inputs.commenter_exitcode }}
+        kgrubb/terraform-pr-commenter ${{ inputs.commenter_type }} ${{ inputs.commenter_exitcode }}
       shell: bash

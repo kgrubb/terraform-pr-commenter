@@ -17,8 +17,8 @@ validate_inputs () {
       exit 1
   fi
 
-  if [[ ! "$1" =~ ^(fmt|init|plan|validate|tflint)$ ]]; then
-    error "Unsupported command \"$1\". Valid commands are \"fmt\", \"init\", \"plan\", \"validate\", \"tflint\"."
+  if [[ ! "$1" =~ ^(fmt|init|plan|validate)$ ]]; then
+    error "Unsupported command \"$1\". Valid commands are \"fmt\", \"init\", \"plan\", \"validate\"."
     exit 1
   fi
 }
