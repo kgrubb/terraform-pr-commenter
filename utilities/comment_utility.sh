@@ -1,3 +1,4 @@
+#!/bin/bash
 ### PAYLOAD UTILITIES ###
 make_and_post_payload () {
   # Add plan comment to PR.
@@ -114,7 +115,7 @@ delete_existing_comments () {
   local regex=$2
   local last_page
 
-  if [[ ! -z $PROJECT ]]; then
+  if [[ -n $PROJECT ]]; then
     regex="## Project: $PROJECT\\n$regex"
   fi
 
@@ -150,7 +151,7 @@ delete_existing_comments () {
     fi
   done
 
-  if [ -z $FOUND ]; then
+  if [ -z "$FOUND" ]; then
     info "No existing $type PR comment found."
   fi
 }

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 execute_tflint () {
   # shellcheck disable=SC2016
   delete_existing_comments 'tflint' '### Linter `TFLint` .* for Workspace: `'"$WORKSPACE"'`.*'

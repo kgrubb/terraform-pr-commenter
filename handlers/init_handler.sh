@@ -1,5 +1,7 @@
+#!/bin/bash
+
 execute_init () {
-  delete_existing_comments "init" '### Terraform `init` Failed'
+  delete_existing_comments "init" "### Terraform \`init\` Failed"
 
   # Exit Code: 0
   # Meaning: Terraform successfully initialized.
@@ -21,7 +23,9 @@ init_success () {
 }
 
 init_fail () {
-  local pr_comment=$(make_details_with_header "Terraform \`init\` Failed" "$INPUT")
+  local pr_comment
+
+  pr_comment=$(make_details_with_header "Terraform \`init\` Failed" "$INPUT")
 
   make_and_post_payload "init failure" "$pr_comment"
 }

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 execute_plan () {
   # shellcheck disable=SC2016
   delete_existing_comments 'plan' '### Terraform `plan` .* for Workspace: `'"$WORKSPACE"'`.*'

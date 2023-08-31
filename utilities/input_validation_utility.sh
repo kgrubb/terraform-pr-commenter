@@ -1,3 +1,5 @@
+#!/bin/bash
+
 validate_inputs () {
   PR_NUMBER=$(echo "$GITHUB_EVENT" | jq -r ".pull_request.number")
   if [[ "$PR_NUMBER" == "null" ]]; then

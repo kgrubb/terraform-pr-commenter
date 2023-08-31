@@ -1,3 +1,5 @@
+#!/bin/bash
+
 debug () {
   if [ -n "${COMMENTER_DEBUG+x}" ]; then
     echo -e "\033[33;1mDEBUG:\033[0m $1"

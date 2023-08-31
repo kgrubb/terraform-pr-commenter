@@ -1,3 +1,5 @@
+#!/bin/bash
+
 split_string () {
   local -n split=$1
   local entire_string=$2
@@ -37,7 +39,6 @@ get_page_count () {
     IFS=',' read -ra links <<< "$link_header"
     for link in "${links[@]}"; do
       # process "$i"
-      local regex
       page_regex='^.*page=([0-9]+).*$'
 
       # if this is the 'last' ref...
