@@ -54,7 +54,7 @@ jobs:
 
       - name: "Post Format"
         if: always() && github.ref != 'refs/heads/main' && (steps.fmt.outcome == 'success' || steps.fmt.outcome == 'failure')
-        uses: kgrubb/terraform-pr-commenter@v3
+        uses: kgrubb/terraform-pr-commenter@v4
         env:
           PROJECT: ${{ matrix.project_path) }}
         with:
@@ -70,7 +70,7 @@ jobs:
 
       - name: "Post Init for ${{ matrix.project_path }}"
         if: always() && github.ref != 'refs/heads/main' && (steps.init.outcome == 'success' || steps.init.outcome == 'failure')
-        uses: kgrubb/terraform-pr-commenter@v3
+        uses: kgrubb/terraform-pr-commenter@v4
         env:
           PROJECT: ${{ matrix.project_path) }}
         with:
@@ -86,7 +86,7 @@ jobs:
 
       - name: "Post Validate for ${{ matrix.project_path }}"
         if: always() && github.ref != 'refs/heads/main' && (steps.validate.outcome == 'success' || steps.validate.outcome == 'failure')
-        uses: kgrubb/terraform-pr-commenter@v3
+        uses: kgrubb/terraform-pr-commenter@v4
         env:
           PROJECT: ${{ matrix.project_path) }}
         with:
@@ -102,7 +102,7 @@ jobs:
 
       - name: "Post Plan for ${{ matrix.project_path }}"
         if: always() && github.ref != 'refs/heads/main' && (steps.plan.outcome == 'success' || steps.plan.outcome == 'failure')
-        uses: kgrubb/terraform-pr-commenter@v3
+        uses: kgrubb/terraform-pr-commenter@v4
         env:
           PROJECT: ${{ matrix.project_path) }}
         with:

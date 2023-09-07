@@ -2,9 +2,11 @@
 
 execute_plan () {
   # shellcheck disable=SC2016
-  delete_existing_comments 'plan' '### Terraform `plan` .* for Workspace: `'"$WORKSPACE"'`.*'
-  delete_existing_comments 'outputs' '### Changes to outputs for Workspace: `'"$WORKSPACE"'`.*'
-
+  if [[ -z $PROJECT ]]; then
+    delete_existing_comments 'outputs' '### Changes to outputs for Workspace: `'"$WORKSPACE"'`.*'
+  else
+    delete_existing_comments 'plan' '### Terraform `plan` .* for: `'"$PROJECT"'`.*'
+  fi
   # Exit Code: 0, 2
   # Meaning: 0 = Terraform plan succeeded with no changes. 2 = Terraform plan succeeded with changes.
   # Actions: Strip out the refresh section, ignore everything after the 72 dashes, format, colourise and build PR comment.
@@ -41,7 +43,11 @@ plan_fail () {
 
   clean_input=$(echo "$INPUT" | perl -pe "${delimiter_start_cmd}")
 
-  post_diff_comments "plan" "Terraform \`plan\` Failed for Workspace: \`$WORKSPACE\`" "$clean_input"
+  if [[ -z $PROJECT ]]; then
+    post_diff_comments "plan" "Terraform \`plan\` Failed for Workspace: \`$WORKSPACE\`" "$clean_input"
+  else
+    post_diff_comments "plan" "Terraform \`plan\` Failed for: \`$PROJECT\`" "$clean_input"
+  fi
 }
 
 post_plan_comments () {
@@ -64,10 +70,10 @@ post_plan_comments () {
   clean_input=$(echo "$INPUT" | perl -pe "${delimiter_start_cmd}")
   clean_input=$(echo "$clean_input" | sed -r "${delimiter_end_cmd}")
 
-  if [[ -n $PROJECT ]]; then
-    post_diff_comments "plan" "Terraform \`plan\` Succeeded for: \`$PROJECT\`" "$clean_input"
-  else
+  if [[ -z $PROJECT ]]; then
     post_diff_comments "plan" "Terraform \`plan\` Succeeded for Workspace: \`$WORKSPACE\`" "$clean_input"
+  else
+    post_diff_comments "plan" "Terraform \`plan\` Succeeded for: \`$PROJECT\`" "$clean_input"
   fi
 }
 
@@ -88,5 +94,9 @@ post_outputs_comments() {
   clean_input=$(echo "$INPUT" | perl -pe "${delimiter_start_cmd}")
   clean_input=$(echo "$clean_input" | sed -r "${delimiter_end_cmd}")
 
-  post_diff_comments "outputs" "Changes to outputs for Workspace: \`$WORKSPACE\`" "$clean_input"
+  if [[ -z $PROJECT ]]; then
+    post_diff_comments "outputs" "Changes to outputs for Workspace: \`$WORKSPACE\`" "$clean_input"
+  else
+    post_diff_comments "outputs" "Changes to outputs for: \`$PROJECT\`" "$clean_input"
+  fi
 }
