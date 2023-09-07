@@ -17,10 +17,6 @@ make_and_post_payload () {
 
 make_details_with_header() {
   local header="### $1"
-  if [[ -n $PROJECT ]]; then
-    header="## Project: $PROJECT
-$header"
-  fi
   local body=$2
   local format=$3
   local pr_comment
@@ -119,10 +115,6 @@ delete_existing_comments () {
   local type=$1
   local regex=$2
   local last_page
-
-  if [[ -n $PROJECT ]]; then
-    regex="## Project: $PROJECT\\n$regex"
-  fi
 
   debug "Type: $type"
   debug "Regex: $regex"

@@ -48,9 +48,9 @@ parse_args () {
   # shellcheck disable=SC2034
   WORKSPACE=${TF_WORKSPACE:-default}
 
-  # Read TF_WORKSPACE environment variable or use ""
+  # Read PROJECT environment variable or use ""
   # shellcheck disable=SC2034
-  PROJECT=${TF_PROJECT:-''}
+  PROJECT=${PROJECT:-''}
 
   # Read EXPAND_SUMMARY_DETAILS environment variable or use "true"
   if [[ ${EXPAND_SUMMARY_DETAILS:-false} == "true" ]]; then

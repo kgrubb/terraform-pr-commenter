@@ -55,13 +55,13 @@ runs:
         COMMENTER_INPUT: ${{ inputs.commenter_input }}
         COMMENTER_PLAN_FILE: ${{ inputs.commenter_plan_path }}
         GITHUB_EVENT: ${{ toJSON(github.event) }}
-        TF_PROJECT: ${{ inputs.project }}
+        PROJECT: ${{ inputs.project }}
       shell: bash
       run: |
         docker run \
         -e GITHUB_TOKEN \
         -e TF_WORKSPACE \
-        -e TF_PROJECT \
+        -e PROJECT \
         -e EXPAND_SUMMARY_DETAILS \
         -e HIGHLIGHT_CHANGES \
         -e GITHUB_EVENT \
@@ -80,12 +80,12 @@ runs:
       env:
         COMMENTER_INPUT: ${{ inputs.commenter_input }}
         GITHUB_EVENT: ${{ toJSON(github.event) }}
-        TF_PROJECT: ${{ inputs.project }}
+        PROJECT: ${{ inputs.project }}
       run: |
         docker run \
         -e GITHUB_TOKEN \
         -e TF_WORKSPACE \
-        -e TF_PROJECT \
+        -e PROJECT \
         -e EXPAND_SUMMARY_DETAILS \
         -e HIGHLIGHT_CHANGES \
         -e GITHUB_EVENT \
