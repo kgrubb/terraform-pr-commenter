@@ -126,7 +126,6 @@ jobs:
 | `commenter_exitcode`  | ___required___ | The exit code from a previous step output. |
 | `terraform_version`   | ___optional___ | The version of terraform from the workflow. Defaults to `1.5.6`. |
 | `use_beta_version`    | ___optional___ | Whether or not to use the beta version of the commenter. |
-| `project`             | ___optional___ | Project name to use in commenter. |
 
 ### Environment Variables
 
@@ -134,7 +133,7 @@ jobs:
 |--------------------------|----------------|-------------|
 | `GITHUB_TOKEN`           | ___required___ | Used to execute API calls. The `${{ secrets.GITHUB_TOKEN }}` already has permissions, but if you're using your own token, ensure it has the `repo` scope. |
 | `TF_WORKSPACE`           | ___optional___ | Default: `default`. This is used to separate multiple comments on a pull request in a matrix run based off of a provided terraform workspace. |
-| `PROJECT`           | ___optional___ | Default: ``. This is used to separate multiple comments on a pull request in a matrix run, based off of a provided path. |
+| `PROJECT`           | ___optional___ | This is used to separate multiple comments on a pull request in a matrix run, based off of a provided path. |
 | `EXPAND_SUMMARY_DETAILS` | ___optional___ | Default: `false`. This controls whether the comment output is collapsed or not. |
 | `HIGHLIGHT_CHANGES`      | ___optional___ | Default: `true`. This switches `~` to `!` in `plan` diffs to highlight Terraform changes in orange. Set to `false` to disable. |
 | `COMMENTER_DEBUG`        | ___optional___ | Default: `false`. This switches the commenter into debug mode. |

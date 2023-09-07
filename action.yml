@@ -25,9 +25,6 @@ inputs:
     description: 'Whether to use the beta version of the commenter.'
     required: false
     default: 'false'
-  project:
-    description: 'The project name to use in the comment.'
-    required: false
 outputs:
   comment_id:
     description: ID of created comment
@@ -55,7 +52,6 @@ runs:
         COMMENTER_INPUT: ${{ inputs.commenter_input }}
         COMMENTER_PLAN_FILE: ${{ inputs.commenter_plan_path }}
         GITHUB_EVENT: ${{ toJSON(github.event) }}
-        PROJECT: ${{ inputs.project }}
       shell: bash
       run: |
         docker run \
@@ -80,7 +76,6 @@ runs:
       env:
         COMMENTER_INPUT: ${{ inputs.commenter_input }}
         GITHUB_EVENT: ${{ toJSON(github.event) }}
-        PROJECT: ${{ inputs.project }}
       run: |
         docker run \
         -e GITHUB_TOKEN \

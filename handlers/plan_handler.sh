@@ -3,9 +3,11 @@
 execute_plan () {
   # shellcheck disable=SC2016
   if [[ -z $PROJECT ]]; then
+    delete_existing_comments 'plan' '### Terraform `plan` .* for Workspace: `'"$WORKSPACE"'`.*'
     delete_existing_comments 'outputs' '### Changes to outputs for Workspace: `'"$WORKSPACE"'`.*'
   else
     delete_existing_comments 'plan' '### Terraform `plan` .* for: `'"$PROJECT"'`.*'
+    delete_existing_comments 'outputs' '### Changes to outputs for: `'"$PROJECT"'`.*'
   fi
   # Exit Code: 0, 2
   # Meaning: 0 = Terraform plan succeeded with no changes. 2 = Terraform plan succeeded with changes.
